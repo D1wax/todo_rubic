@@ -7,6 +7,7 @@ command = 0
 # 0 - пользователь нечего не выбрал
 # 1 - ожидаем дату для добавления задачи
 # 2 - ожидаем задачу для добавления в словарь
+# 3 - ожидаем вариант отображения задач
 
 userDate, userTask = 0, 0
 
@@ -42,14 +43,17 @@ async def help(message:Message):
 
 @dp.message_handler(commands = "show")
 async def show(message:Message):
-  await message.answer(text = "Работает")
+  global command
+  await message.answer(text = "[ 0 ] - вывести все задачи\n[ 1 ] - задачи по дате")
+  command = 3
 
 @dp.message_handler()
 async def inputText(message:Message):
   global userDate, userTask, command, todo
   if command == 1:
     #проверка коррекности ввода
-
+    if checkFate(userDate, message) == False:
+      return
     #запрос что нужно сделать
     userDate = message.text
     await message.answer("Что нужно сделать?")
@@ -62,4 +66,11 @@ async def inputText(message:Message):
      todo[userDate]=[userTask]
      await message.answer(f"Добавлена '{userTask}' на {userDate}")
      command = 0
+  elif command == 3:
+    if message.text == "0":
+      # сортируем ключи и проходимся по ним циклом
+      for date in sorted( todo.keys() ):
+        # Получаем список задач и выводим каждую задачу на новой строке
+        for task in todo[ date ]:
+          await message.answer(text =f"[{date} - '{task}']")
     
